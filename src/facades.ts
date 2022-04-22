@@ -22,11 +22,14 @@ const plugin: CapacitorFirebaseAuthPlugin = CapacitorFirebaseAuth;
 export const cfaSignIn = (providerId: string, data?: SignInOptions): Observable<firebase.User> => {
 	const googleProvider = new firebase.auth.GoogleAuthProvider().providerId;
 	const facebookProvider = new firebase.auth.FacebookAuthProvider().providerId;
+	const microsoftProvider = 'microsoft.com';
 	const twitterProvider = new firebase.auth.TwitterAuthProvider().providerId;
 	const phoneProvider = new firebase.auth.PhoneAuthProvider().providerId;
 	switch (providerId) {
 		case googleProvider:
 			return cfaSignInGoogle();
+		case microsoftProvider:
+			return cfaSignInMicrosoft();
 		case twitterProvider:
 			return cfaSignInTwitter();
 		case facebookProvider:
@@ -73,6 +76,34 @@ export const cfaSignInGoogle = (): Observable<firebase.User> => {
 		});
 	});
 };
+
+/**
+ * Call the Microsoft sign in method on native and sign in on web layer with retrieved credentials.
+ */
+export const cfaSignInMicrosoft = (): Observable<firebase.User> => {
+	return new Observable(observer => {
+		// get the provider id
+		const providerId = 'microsoft.com';
+
+		// native sign in
+		plugin.signIn<TwitterSignInResult>({ providerId }).then((result: TwitterSignInResult) => {
+			// create the credentials
+			const credential = firebase.auth.TwitterAuthProvider.credential(result.idToken, result.secret);
+
+			// web sign in
+			firebase.app().auth().signInWithCredential(credential)
+				.then((userCredential: firebase.auth.UserCredential) => {
+					if(!userCredential.user) {
+						throw new Error('Firebase User was not received.')
+					}
+					observer.next(userCredential.user);
+					observer.complete();
+				})
+				.catch((reject: any) => observer.error(reject));
+
+		}).catch((reject: any) => observer.error(reject));
+	});
+}
 
 /**
  * Call the Twitter sign in method on native and sign in on web layer with retrieved credentials.

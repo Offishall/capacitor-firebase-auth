@@ -39,6 +39,9 @@ public class CapacitorFirebaseAuth: CAPPlugin {
             } else if ("twitter.com" == provider) {
                 self.providers["twitter.com"] = TwitterProviderHandler()
                 self.providers["twitter.com"]?.initialize(plugin: self)
+            } else if ("microsoft.com" == provider) {
+                self.providers["microsoft.com"] = MicrosoftProviderHandler()
+                self.providers["microsoft.com"]?.initialize(plugin: self)
             } else if ("facebook.com" == provider) {
                 self.providers["facebook.com"] = FacebookProviderHandler()
                 self.providers["facebook.com"]?.initialize(plugin: self)
